@@ -1,0 +1,37 @@
+# Laws about substitution 
+(sub ?e id) ~> ?e
+(sub ?e (comp ?s1 ?s2)) ~> (sub (sub ?e ?s1) ?s2)
+
+# Substitution on lambda terms
+(sub (var z) (cons ?e ?s)) ~> ?e
+(sub (var (s ?n)) (cons ?e ?s)) ~> (sub (var ?n) ?s)
+(sub (var ?n) weak) ~> (var (s ?n))
+(sub (app ?e1 ?e2) ?s) ~> (app (sub ?e1 ?s) (sub ?e2 ?s))
+(sub (lam ?e) ?s) ~> (lam (sub ?e (cons (var z) (comp ?s weak))))
+
+# Lambda calculus
+(app (lam ?e1) ?e2) ~> (sub ?e1 (cons ?e2 id))
+
+# Query: (λx.x)y should be y
+(app (lam (var z)) (var z))
+?e
+
+# Query: (λxy.x)y should be λz.y
+(app (lam (lam (var (s z)))) (var z))
+?e
+
+# Query: (λxy.x)(λx.y) should be λzx.y
+(app (lam (lam (var (s z)))) (lam (var (s z))))
+?e
+
+# Query: (λfx.f(fx))(λx.x)y should be y
+(app (app (lam (lam (app (var (s z)) (app (var (s z)) (var z))))) (lam (var z))) (var z))
+?e
+
+# Query: (λfx.f(fx))(λfx.f(f(x))) should be λfx.f(f(f(fx)))
+(app (lam (lam (app (var (s z)) (app (var (s z)) (var z))))) (lam (lam (app (var (s z)) (app (var (s z)) (var z))))))
+?e
+
+# Query: (λfx.f(f(fx)))(λfx.f(fx)) should be λfx.f^8(x), hits iteration limit (30)
+(app (lam (lam (app (var (s z)) (app (var (s z)) (var z))))) (lam (lam (app (var (s z)) (app (var (s z)) (app (var (s z)) (var z)))))))
+?e
